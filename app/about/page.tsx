@@ -44,7 +44,7 @@ export default function AboutPage() {
           </div>
           <div className="relative h-[400px] rounded-2xl overflow-hidden">
             <Image
-              src="/assets/about1.jpg"
+              src="/assets/logo.jpg"
               alt="Our Mission"
               fill
               className="object-cover"

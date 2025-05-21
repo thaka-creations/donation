@@ -8,7 +8,7 @@ export default function Navigation() {
   const pathname = usePathname();
   
   // Only show navigation on stories pages
-  if (pathname.startsWith('/staff')) {
+  if (pathname.startsWith('/staff') || pathname.startsWith('/login')) {
     return null;
   }
 
@@ -44,7 +44,7 @@ export default function Navigation() {
             href="/login"
             className="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-medium transition"
           >
-            Staff Login
+            Login
           </Link>
         </div>
       </div>
