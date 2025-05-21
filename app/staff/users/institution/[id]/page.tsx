@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Building, Mail, Phone, MapPin, Hash, Users, UserPlus, Link, Share2, Edit, Download } from 'lucide-react';
-import DataTable from '@/components/ui/DataTable';
+import { ArrowLeft, Building, Mail, Phone, MapPin, Users, Eye, UserPlus } from 'lucide-react';
 import apiClient from '@/lib/api-client';
 
 interface InstitutionProfile {
@@ -35,62 +34,63 @@ export default function InstitutionDetailsPage() {
   const [donees, setDonees] = useState<Donee[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortConfig, setSortConfig] = useState<{key: keyof Donee; direction: 'asc' | 'desc'}>({
+    key: 'username',
+    direction: 'asc'
+  });
 
   useEffect(() => {
-    const fetchInstitutionDetails = async () => {
+    const fetchData = async () => {
       try {
-        const response = await apiClient.get(`/account/institution/${params.id}`);
-        setInstitution(response.data.details);
+        const [institutionRes, doneesRes] = await Promise.all([
+          apiClient.get(`/account/institution/${params.id}`),
+          apiClient.get(`/account/institution/list-institution-donnees?user_id=${params.id}`)
+        ]);
+        
+        setInstitution(institutionRes.data.details);
+        setDonees(doneesRes.data.results);
       } catch (err) {
-        setError('Failed to fetch institution details');
-      }
-    };
-
-    const fetchInstitutionDonees = async () => {
-      try {
-        const response = await apiClient.get(`/account/institution/list-institution-donnees?user_id=${params.id}`);
-        setDonees(response.data.results);
-      } catch (err) {
-        setError('Failed to fetch institution donees');
+        setError('Failed to fetch data');
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchInstitutionDetails();
-    fetchInstitutionDonees();
+    fetchData();
   }, [params.id]);
 
-  const EmptyDoneesState = () => (
-    <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-      <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-purple-50 dark:bg-purple-900/20 mb-6">
-        <Users className="w-10 h-10 text-purple-600 dark:text-purple-400" />
-      </div>
-      <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-3">
-        No Donees Found
-      </h3>
-      <p className="text-gray-500 dark:text-gray-400 max-w-sm mx-auto mb-8">
-        This institution hasn't added any donees yet. Get started by adding your first donee.
-      </p>
-      <button
-        onClick={() => router.push(`/staff/donnees/add?institutionId=${params.id}`)}
-        className="inline-flex items-center px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-full font-medium transition-colors"
-      >
-        <UserPlus className="w-5 h-5 mr-2" />
-        Add First Donee
-      </button>
-    </div>
-  );
+  const handleSort = (key: keyof Donee) => {
+    setSortConfig({
+      key,
+      direction: sortConfig.key === key && sortConfig.direction === 'asc' ? 'desc' : 'asc'
+    });
+  };
+
+  const filteredAndSortedDonees = donees
+    .filter(donee => 
+      donee.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      donee.name.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((a, b) => {
+      if (sortConfig.direction === 'asc') {
+        return a[sortConfig.key] > b[sortConfig.key] ? 1 : -1;
+      }
+      return a[sortConfig.key] < b[sortConfig.key] ? 1 : -1;
+    });
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center p-8 bg-red-50 dark:bg-red-900/20 rounded-lg">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/40 mb-4">
-            <AlertCircle className="w-8 h-8 text-red-600 dark:text-red-400" />
-          </div>
-          <h3 className="text-lg font-medium text-red-900 dark:text-red-100 mb-2">Error</h3>
-          <p className="text-red-600 dark:text-red-400">{error}</p>
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 text-center">
+          <div className="text-red-500 text-xl mb-4">Error loading data</div>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+          >
+            Retry
+          </button>
         </div>
       </div>
     );
@@ -105,172 +105,159 @@ export default function InstitutionDetailsPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => router.back()}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
-          >
-            <ArrowLeft className="w-6 h-6 text-gray-600 dark:text-gray-400" />
-          </button>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            {institution?.name}
-          </h1>
-        </div>
-        
-        <div className="flex items-center gap-3">
-          <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
-            <Share2 className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-          </button>
-          <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
-            <Edit className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-          </button>
-          <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
-            <Download className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-          </button>
-        </div>
-      </div>
-
-      {/* Institution Card */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden mb-8">
-        <div className="p-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0">
-                <div className="w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center">
-                  <Building className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-                </div>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Institution Code</p>
-                <p className="text-lg font-medium text-gray-900 dark:text-white">{institution?.profile_info.code}</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0">
-                <div className="w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center">
-                  <Mail className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-                </div>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Email</p>
-                <p className="text-lg font-medium text-gray-900 dark:text-white">{institution?.username}</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0">
-                <div className="w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center">
-                  <Phone className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-                </div>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Phone</p>
-                <p className="text-lg font-medium text-gray-900 dark:text-white">{institution?.profile_info.phone_number}</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0">
-                <div className="w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center">
-                  <MapPin className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-                </div>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Physical Address</p>
-                <p className="text-lg font-medium text-gray-900 dark:text-white">{institution?.profile_info.physical_address}</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0">
-                <div className="w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center">
-                  <MapPin className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-                </div>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Postal Address</p>
-                <p className="text-lg font-medium text-gray-900 dark:text-white">{institution?.profile_info.postal_address}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Donees Section */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <Users className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                Institution Donees
-              </h2>
-              <span className="px-3 py-1 text-sm font-medium text-purple-600 bg-purple-100 dark:text-purple-400 dark:bg-purple-900/20 rounded-full">
-                {donees.length}
-              </span>
-            </div>
-            
-            <Link 
-              href={`/staff/donnees/add?institutionId=${params.id}`}
-              className="inline-flex items-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors"
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => router.back()}
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
             >
-              <UserPlus className="w-5 h-5 mr-2" />
-              Add Donees
-            </Link>
+              <ArrowLeft className="w-6 h-6" />
+            </button>
+            <h1 className="text-2xl font-bold">{institution?.name}</h1>
+          </div>
+          
+          <button
+            onClick={() => router.push(`/staff/users/donnees/add?institutionId=${params.id}`)}
+            className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+          >
+            <UserPlus className="w-5 h-5" />
+            Add Donee
+          </button>
+        </div>
+
+        {/* Info Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          <InfoCard icon={<Building />} label="Institution Code" value={institution?.profile_info.code} />
+          <InfoCard icon={<Mail />} label="Email" value={institution?.username} />
+          <InfoCard icon={<Phone />} label="Phone" value={institution?.profile_info.phone_number} />
+          <InfoCard icon={<MapPin />} label="Physical Address" value={institution?.profile_info.physical_address} />
+          <InfoCard icon={<MapPin />} label="Postal Address" value={institution?.profile_info.postal_address} />
+        </div>
+
+        {/* Donees List */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm">
+          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-purple-100 dark:bg-purple-900/20 rounded-lg">
+                  <Users className="w-5 h-5 text-purple-600" />
+                </div>
+                <h2 className="text-xl font-semibold">Donees</h2>
+                <span className="px-2.5 py-0.5 text-sm bg-purple-100 dark:bg-purple-900/20 text-purple-600 rounded-full">
+                  {donees.length}
+                </span>
+              </div>
+              
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search donees..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-64 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+              </div>
+            </div>
           </div>
 
-          {donees.length === 0 ? (
-            <EmptyDoneesState />
-          ) : (
-            <DataTable
-              columns={[
-                {
-                  header: 'Name',
-                  accessor: 'name',
-                  render: (value: string) => (
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center">
-                        <span className="text-sm font-medium text-purple-600 dark:text-purple-400">
-                          {value.charAt(0)}
-                        </span>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 dark:bg-gray-900/50">
+                <tr>
+                  <TableHeader label="Name" sortKey="name" sortConfig={sortConfig} onSort={handleSort} />
+                  <TableHeader label="Admission Number" sortKey="username" sortConfig={sortConfig} onSort={handleSort} />
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                {filteredAndSortedDonees.map((donee) => (
+                  <tr key={donee.id} className="hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center">
+                          <span className="text-lg font-medium text-purple-600">{donee.name[0]}</span>
+                        </div>
+                        <div>
+                          <div className="font-medium text-gray-900 dark:text-white">{donee.name}</div>
+                          <div className="text-sm text-gray-500">Donee</div>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium text-gray-900 dark:text-white">{value}</p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Donee</p>
-                      </div>
-                    </div>
-                  ),
-                },
-                {
-                  header: 'Admission Number',
-                  accessor: 'username',
-                  render: (value: string) => (
-                    <span className="font-medium text-gray-900 dark:text-white">{value}</span>
-                  ),
-                },
-                {
-                  header: 'Status',
-                  accessor: 'status',
-                  render: () => (
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400">
-                      Active
-                    </span>
-                  ),
-                },
-              ]}
-              data={donees}
-              title=""
-              isLoading={isLoading}
-              searchable={true}
-              filterable={true}
-            />
-          )}
+                    </td>
+                    <td className="px-6 py-4 text-gray-900 dark:text-white">{donee.username}</td>
+                    <td className="px-6 py-4">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400">
+                        Active
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <button
+                        onClick={() => router.push(`/staff/users/donnees/${donee.id}`)}
+                        className="text-purple-600 hover:text-purple-900 dark:text-purple-400 dark:hover:text-purple-300 inline-flex items-center gap-1"
+                      >
+                        <Eye className="w-4 h-4" />
+                        View
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
+  );
+}
+
+interface InfoCardProps {
+  icon: React.ReactNode;
+  label: string;
+  value?: string;
+}
+
+function InfoCard({ icon, label, value }: InfoCardProps) {
+  return (
+    <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
+      <div className="flex items-center gap-4">
+        <div className="p-3 bg-purple-100 dark:bg-purple-900/20 rounded-xl">
+          {icon && 'type' in icon && typeof icon.type === 'function' ? (
+            <icon.type {...icon.props} className="w-6 h-6 text-purple-600" />
+          ) : (
+            icon
+          )}
+        </div>
+        <div>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{label}</p>
+          <p className="text-lg font-medium text-gray-900 dark:text-white mt-1">{value}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface TableHeaderProps {
+  label: string;
+  sortKey: keyof Donee;
+  sortConfig: { key: keyof Donee; direction: 'asc' | 'desc' };
+  onSort: (key: keyof Donee) => void;
+}
+
+function TableHeader({ label, sortKey, sortConfig, onSort }: TableHeaderProps) {
+  return (
+    <th
+      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+      onClick={() => onSort(sortKey)}
+    >
+      <div className="flex items-center gap-1">
+        <span>{label}</span>
+        {sortConfig.key === sortKey && (
+          <span>{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>
+        )}
+      </div>
+    </th>
   );
 }
