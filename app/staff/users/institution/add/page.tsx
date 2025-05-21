@@ -9,6 +9,7 @@ import Toast from '@/components/ui/Toast';
 export default function AddInstitutionPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<{
     message: string;
     type: 'success' | 'error';
@@ -17,6 +18,7 @@ export default function AddInstitutionPage() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
+    setError(null);
 
     const formData = new FormData(e.currentTarget);
     const data = {
@@ -32,22 +34,22 @@ export default function AddInstitutionPage() {
     };
 
     try {
-      const response = await apiClient.post('/account/institution', data);
+      await apiClient.post('/account/institution', data);
       
-      // Show success message
       setToast({
         message: 'Institution created successfully',
         type: 'success'
       });
 
-      // Redirect after a short delay to show the success message
       setTimeout(() => {
         router.push('/staff/users/institution');
       }, 1500);
     } catch (err) {
-      // Show error message
+      console.log("error", err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create institution. Please try again.';
+      setError(errorMessage);
       setToast({
-        message: 'Failed to create institution. Please try again.',
+        message: errorMessage,
         type: 'error'
       });
     } finally {
@@ -269,4 +271,4 @@ export default function AddInstitutionPage() {
       </div>
     </div>
   );
-} 
+}

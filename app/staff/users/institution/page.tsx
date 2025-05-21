@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import DataTable from '@/components/ui/DataTable';
 import Modal from '@/components/ui/Modal';
-import { Plus, MapPin, Phone, Mail, Building, Hash, Eye } from 'lucide-react';
+import { Plus, MapPin, Phone, Mail, Building, Hash, Eye, Search, Filter, Download } from 'lucide-react';
 import apiClient from '@/lib/api-client';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
@@ -31,6 +31,11 @@ export default function InstitutionUsersPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortConfig, setSortConfig] = useState<{key: keyof Institution; direction: 'asc' | 'desc'}>({
+    key: 'name',
+    direction: 'asc'
+  });
 
   const fetchInstitutions = async () => {
     try {
@@ -47,186 +52,169 @@ export default function InstitutionUsersPage() {
     }
   };
 
-  const fetchInstitutionDetails = async (id: string) => {
-    try {
-      const response = await apiClient.get(`/account/institution/${id}`);
-      setSelectedInstitution(response.data.details);
-      setIsModalOpen(true);
-    } catch (err) {
-      if (axios.isAxiosError(err) && err.response?.status === 401) {
-        router.push('/login');
-      } else {
-        setError(err instanceof Error ? err.message : 'An error occurred');
-      }
-    }
-  };
-
   useEffect(() => {
     fetchInstitutions();
   }, []);
 
-  const columns = [
-    {
-      header: 'Name',
-      accessor: 'name',
-      render: (value: string, row: Institution) => (
-        <div className="flex items-center gap-3">
-          <div className="h-8 w-8 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center">
-            <span className="text-sm font-medium text-purple-600 dark:text-purple-400">
-              {value.charAt(0)}
-            </span>
-          </div>
-          <span className="text-gray-900 dark:text-gray-100">{value}</span>
-        </div>
-      ),
-    },
-    {
-      header: 'Email',
-      accessor: 'username',
-    },
-    {
-      header: 'Code',
-      accessor: 'profile_info',
-      render: (profile: InstitutionProfile | undefined) => (
-        <span className="text-gray-600 dark:text-gray-400">
-          {profile?.code || 'N/A'}
-        </span>
-      ),
-    },
-    {
-      header: 'Status',
-      accessor: 'status',
-      render: () => (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
-          Active
-        </span>
-      ),
-    },
-    {
-      header: 'Actions',
-      accessor: 'id',
-      render: (id: string) => (
-        <button
-          onClick={() => router.push(`/staff/users/institution/${id}`)}
-          className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg transition-colors"
-        >
-          <Eye className="w-4 h-4" />
-          View
-        </button>
-      ),
-    },
-  ];
-
-  const handleAdd = () => {
-    router.push('/staff/users/institution/add');
+  const handleSort = (key: keyof Institution) => {
+    setSortConfig({
+      key,
+      direction: sortConfig.key === key && sortConfig.direction === 'asc' ? 'desc' : 'asc'
+    });
   };
 
-  const handleSearch = (query: string) => {
-    // Implement search functionality
-    console.log('Search:', query);
-  };
+  const filteredAndSortedInstitutions = institutions
+    .filter(institution => 
+      institution.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      institution.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      institution.profile_info.code.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((a, b) => {
+      if (sortConfig.direction === 'asc') {
+        return a[sortConfig.key] > b[sortConfig.key] ? 1 : -1;
+      }
+      return a[sortConfig.key] < b[sortConfig.key] ? 1 : -1;
+    });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+      </div>
+    );
+  }
 
   if (error) {
     return (
-      <div className="p-4 text-center text-red-600 dark:text-red-400">
-        Error: {error}
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-red-500 bg-red-50 dark:bg-red-900/10 p-4 rounded-lg">{error}</div>
       </div>
     );
   }
 
   return (
-    <>
-      <DataTable
-        columns={columns}
-        data={institutions}
-        title="Institutions"
-        isLoading={isLoading}
-        onAdd={handleAdd}
-        addButtonText="Add Institution"
-        onSearch={handleSearch}
-      />
-
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title={selectedInstitution?.name || 'Institution Details'}
-      >
-        {selectedInstitution && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <Building className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                  <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Institution Name</p>
-                    <p className="text-gray-900 dark:text-gray-100">{selectedInstitution.name}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <Mail className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                  <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Email</p>
-                    <p className="text-gray-900 dark:text-gray-100">{selectedInstitution.username}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <Hash className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                  <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Institution Code</p>
-                    <p className="text-gray-900 dark:text-gray-100">{selectedInstitution.profile_info.code}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <Phone className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                  <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Phone Number</p>
-                    <p className="text-gray-900 dark:text-gray-100">{selectedInstitution.profile_info.phone_number}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <MapPin className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                  <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Physical Address</p>
-                    <p className="text-gray-900 dark:text-gray-100">{selectedInstitution.profile_info.physical_address}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <MapPin className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                  <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Postal Address</p>
-                    <p className="text-gray-900 dark:text-gray-100">{selectedInstitution.profile_info.postal_address}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
-              >
-                Close
-              </button>
-              <button
-                onClick={() => {
-                  // Implement edit functionality
-                  console.log('Edit institution');
-                }}
-                className="px-4 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-lg"
-              >
-                Edit Institution
-              </button>
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="sm:flex sm:items-center sm:justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Institutions</h1>
+          <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">
+            Manage and view all registered institutions in the system
+          </p>
+        </div>
+        <div className="mt-4 sm:mt-0 flex space-x-3">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search institutions..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="block w-full rounded-lg border-gray-300 dark:border-gray-700 pl-10 pr-3 py-2 text-sm 
+                placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent
+                dark:bg-gray-800 dark:text-white"
+            />
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="h-5 w-5 text-gray-400" />
             </div>
           </div>
-        )}
-      </Modal>
-    </>
+          <button
+            onClick={() => router.push('/staff/users/institution/add')}
+            className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+          >
+            <Plus className="h-5 w-5 mr-2" />
+            Add Institution
+          </button>
+        </div>
+      </div>
+
+      <div className="bg-white dark:bg-gray-900 shadow-sm rounded-lg overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead className="bg-gray-50 dark:bg-gray-800">
+              <tr>
+                <th 
+                  scope="col" 
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer"
+                  onClick={() => handleSort('name')}
+                >
+                  <div className="flex items-center space-x-1">
+                    <span>Name</span>
+                    {sortConfig.key === 'name' && (
+                      <span>{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>
+                    )}
+                  </div>
+                </th>
+                <th 
+                  scope="col" 
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer"
+                  onClick={() => handleSort('username')}
+                >
+                  <div className="flex items-center space-x-1">
+                    <span>Email</span>
+                    {sortConfig.key === 'username' && (
+                      <span>{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>
+                    )}
+                  </div>
+                </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Code
+                </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Status
+                </th>
+                <th scope="col" className="relative px-6 py-3">
+                  <span className="sr-only">Actions</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+              {filteredAndSortedInstitutions.map((institution) => (
+                <tr 
+                  key={institution.id}
+                  className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200"
+                >
+                  <td className="px-6 py-4">
+                    <div className="flex items-center">
+                      <div className="h-10 w-10 flex-shrink-0">
+                        <div className="h-10 w-10 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center">
+                          <span className="text-sm font-medium text-purple-600 dark:text-purple-400">
+                            {institution.name.charAt(0)}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="ml-4">
+                        <div className="text-sm font-medium text-gray-900 dark:text-white">
+                          {institution.name}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                    {institution.username}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                    {institution.profile_info.code || 'N/A'}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
+                      Active
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <button
+                      onClick={() => router.push(`/staff/users/institution/${institution.id}`)}
+                      className="text-purple-600 hover:text-purple-900 dark:text-purple-400 dark:hover:text-purple-300 
+                        transition-colors duration-200 flex items-center"
+                    >
+                      <Eye className="w-4 h-4 mr-1" />
+                      View
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   );
-} 
+}

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Building, Mail, Phone, MapPin, Hash, Users, UserPlus } from 'lucide-react';
+import { ArrowLeft, Building, Mail, Phone, MapPin, Hash, Users, UserPlus, Link, Share2, Edit, Download } from 'lucide-react';
 import DataTable from '@/components/ui/DataTable';
 import apiClient from '@/lib/api-client';
 
@@ -62,33 +62,36 @@ export default function InstitutionDetailsPage() {
   }, [params.id]);
 
   const EmptyDoneesState = () => (
-    <div className="text-center py-12">
-      <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-purple-100 dark:bg-purple-900/20 mb-4">
-        <Users className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+    <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+      <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-purple-50 dark:bg-purple-900/20 mb-6">
+        <Users className="w-10 h-10 text-purple-600 dark:text-purple-400" />
       </div>
-      <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+      <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-3">
         No Donees Found
       </h3>
-      <p className="text-gray-500 dark:text-gray-400 mb-6">
-        This institution doesn't have any donees yet.
+      <p className="text-gray-500 dark:text-gray-400 max-w-sm mx-auto mb-8">
+        This institution hasn't added any donees yet. Get started by adding your first donee.
       </p>
       <button
-        onClick={() => {
-          // Implement add donee functionality
-          console.log('Add donee');
-        }}
-        className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+        onClick={() => router.push(`/staff/donnees/add?institutionId=${params.id}`)}
+        className="inline-flex items-center px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-full font-medium transition-colors"
       >
-        <UserPlus className="w-5 h-5" />
-        Add Donee
+        <UserPlus className="w-5 h-5 mr-2" />
+        Add First Donee
       </button>
     </div>
   );
 
   if (error) {
     return (
-      <div className="p-4 text-center text-red-600 dark:text-red-400">
-        Error: {error}
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center p-8 bg-red-50 dark:bg-red-900/20 rounded-lg">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/40 mb-4">
+            <AlertCircle className="w-8 h-8 text-red-600 dark:text-red-400" />
+          </div>
+          <h3 className="text-lg font-medium text-red-900 dark:text-red-100 mb-2">Error</h3>
+          <p className="text-red-600 dark:text-red-400">{error}</p>
+        </div>
       </div>
     );
   }
@@ -96,93 +99,130 @@ export default function InstitutionDetailsPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+        <div className="animate-spin rounded-full h-16 w-16 border-4 border-purple-200 dark:border-purple-900 border-t-purple-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Back button and header */}
-      <div className="flex items-center gap-4">
-        <button
-          onClick={() => router.back()}
-          className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          Back
-        </button>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-          Institution Details
-        </h1>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => router.back()}
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+          >
+            <ArrowLeft className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+          </button>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            {institution?.name}
+          </h1>
+        </div>
+        
+        <div className="flex items-center gap-3">
+          <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
+            <Share2 className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+          </button>
+          <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
+            <Edit className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+          </button>
+          <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
+            <Download className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+          </button>
+        </div>
       </div>
 
-      {/* Institution Information */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
-        <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <Building className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Institution Name</p>
-                  <p className="text-gray-900 dark:text-gray-100">{institution?.name}</p>
+      {/* Institution Card */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden mb-8">
+        <div className="p-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0">
+                <div className="w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center">
+                  <Building className="w-6 h-6 text-purple-600 dark:text-purple-400" />
                 </div>
               </div>
-
-              <div className="flex items-center gap-3">
-                <Mail className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Email</p>
-                  <p className="text-gray-900 dark:text-gray-100">{institution?.username}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <Hash className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Institution Code</p>
-                  <p className="text-gray-900 dark:text-gray-100">{institution?.profile_info.code}</p>
-                </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Institution Code</p>
+                <p className="text-lg font-medium text-gray-900 dark:text-white">{institution?.profile_info.code}</p>
               </div>
             </div>
 
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <Phone className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Phone Number</p>
-                  <p className="text-gray-900 dark:text-gray-100">{institution?.profile_info.phone_number}</p>
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0">
+                <div className="w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center">
+                  <Mail className="w-6 h-6 text-purple-600 dark:text-purple-400" />
                 </div>
               </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Email</p>
+                <p className="text-lg font-medium text-gray-900 dark:text-white">{institution?.username}</p>
+              </div>
+            </div>
 
-              <div className="flex items-center gap-3">
-                <MapPin className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Physical Address</p>
-                  <p className="text-gray-900 dark:text-gray-100">{institution?.profile_info.physical_address}</p>
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0">
+                <div className="w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center">
+                  <Phone className="w-6 h-6 text-purple-600 dark:text-purple-400" />
                 </div>
               </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Phone</p>
+                <p className="text-lg font-medium text-gray-900 dark:text-white">{institution?.profile_info.phone_number}</p>
+              </div>
+            </div>
 
-              <div className="flex items-center gap-3">
-                <MapPin className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Postal Address</p>
-                  <p className="text-gray-900 dark:text-gray-100">{institution?.profile_info.postal_address}</p>
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0">
+                <div className="w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center">
+                  <MapPin className="w-6 h-6 text-purple-600 dark:text-purple-400" />
                 </div>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Physical Address</p>
+                <p className="text-lg font-medium text-gray-900 dark:text-white">{institution?.profile_info.physical_address}</p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0">
+                <div className="w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center">
+                  <MapPin className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                </div>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Postal Address</p>
+                <p className="text-lg font-medium text-gray-900 dark:text-white">{institution?.profile_info.postal_address}</p>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Institution Donees */}
-      <div className="mt-8">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-          <Users className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-          Institution Donees
-        </h2>
-        <div className="mt-4">
+      {/* Donees Section */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <Users className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                Institution Donees
+              </h2>
+              <span className="px-3 py-1 text-sm font-medium text-purple-600 bg-purple-100 dark:text-purple-400 dark:bg-purple-900/20 rounded-full">
+                {donees.length}
+              </span>
+            </div>
+            
+            <Link 
+              href={`/staff/donnees/add?institutionId=${params.id}`}
+              className="inline-flex items-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors"
+            >
+              <UserPlus className="w-5 h-5 mr-2" />
+              Add Donees
+            </Link>
+          </div>
+
           {donees.length === 0 ? (
             <EmptyDoneesState />
           ) : (
@@ -191,26 +231,32 @@ export default function InstitutionDetailsPage() {
                 {
                   header: 'Name',
                   accessor: 'name',
-                  render: (value: string, row: Donee) => (
+                  render: (value: string) => (
                     <div className="flex items-center gap-3">
-                      <div className="h-8 w-8 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center">
+                      <div className="h-10 w-10 rounded-full bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center">
                         <span className="text-sm font-medium text-purple-600 dark:text-purple-400">
                           {value.charAt(0)}
                         </span>
                       </div>
-                      <span className="text-gray-900 dark:text-gray-100">{value}</span>
+                      <div>
+                        <p className="font-medium text-gray-900 dark:text-white">{value}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Donee</p>
+                      </div>
                     </div>
                   ),
                 },
                 {
-                  header: 'Username',
+                  header: 'Admission Number',
                   accessor: 'username',
+                  render: (value: string) => (
+                    <span className="font-medium text-gray-900 dark:text-white">{value}</span>
+                  ),
                 },
                 {
                   header: 'Status',
                   accessor: 'status',
                   render: () => (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400">
                       Active
                     </span>
                   ),
@@ -219,8 +265,8 @@ export default function InstitutionDetailsPage() {
               data={donees}
               title=""
               isLoading={isLoading}
-              searchable={false}
-              filterable={false}
+              searchable={true}
+              filterable={true}
             />
           )}
         </div>
