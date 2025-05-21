@@ -67,7 +67,7 @@ export default function InstitutionUsersPage() {
     .filter(institution => 
       institution.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       institution.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      institution.profile_info.code.toLowerCase().includes(searchTerm.toLowerCase())
+      institution?.profile_info?.code?.toLowerCase().includes(searchTerm.toLowerCase())
     )
     .sort((a, b) => {
       if (sortConfig.direction === 'asc') {
@@ -192,7 +192,7 @@ export default function InstitutionUsersPage() {
                     {institution.username}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                    {institution.profile_info.code || 'N/A'}
+                    {institution?.profile_info?.code || 'N/A'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
