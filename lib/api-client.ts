@@ -3,7 +3,7 @@ import Cookies from 'js-cookie';
 
 // Create axios instance with base configuration
 const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
+  baseURL: "http://45.79.97.25:8013/api/v1",
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json'
@@ -45,7 +45,7 @@ apiClient.interceptors.response.use(
 
         // Request new tokens
         const { data: { details } } = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/refresh`,
+          `http://45.79.97.25:8013/api/v1/auth/refresh`,
           { refresh_token: refreshToken }
         );
 

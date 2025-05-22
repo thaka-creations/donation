@@ -56,11 +56,11 @@ export default function InstitutionClient({ id }: InstitutionClientProps): React
 
         const [institutionRes, doneesRes] = await Promise.all([
           axios.get<{ details: Institution }>(
-            `${process.env.NEXT_PUBLIC_API_BASE_URL}/account/institution/${id}`,
+            `http://45.79.97.25:8013/api/v1/account/institution/${id}`,
             { headers }
           ),
           axios.get<{ results: Donee[] }>(
-            `${process.env.NEXT_PUBLIC_API_BASE_URL}/account/institution/list-institution-donnees?user_id=${id}`,
+            `http://45.79.97.25:8013/api/v1/account/institution/list-institution-donnees?user_id=${id}`,
             { headers }
           ),
         ]);
