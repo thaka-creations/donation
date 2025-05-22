@@ -8,6 +8,7 @@ import { login } from '@/lib/auth';
 
 export default function LoginPage() {
   const [form, setForm] = useState({ username: '', password: '' });
+  const logoPath = process.env.NODE_ENV === 'production' ? '/donation/assets/logo.jpg' : '/assets/logo.jpg';
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -37,7 +38,7 @@ export default function LoginPage() {
         <div className="mb-6 flex flex-col items-center">
           <Link href="/">
           <Image
-            src="/assets/logo.jpg"
+            src={logoPath}
             alt="KenyanPad Logo"
             width={90}
             height={90}

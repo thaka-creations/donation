@@ -4,13 +4,14 @@ import Image from 'next/image';
 import { Heart } from 'lucide-react';
 
 export default function AboutPage() {
+  const logoPath = process.env.NODE_ENV === 'production' ? '/donation/assets/logo.jpg' : '/assets/logo.jpg';
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Hero Section */}
       <div className="relative h-[400px] overflow-hidden">
         <div className="absolute inset-0 bg-purple-600/90 z-10" />
         <Image
-          src="/assets/logo.jpg"
+          src={logoPath}
           alt="About Us"
           fill
           className="object-cover"
@@ -44,7 +45,7 @@ export default function AboutPage() {
           </div>
           <div className="relative h-[400px] rounded-2xl overflow-hidden">
             <Image
-              src="/assets/logo.jpg"
+              src={logoPath}
               alt="Our Mission"
               fill
               className="object-cover"

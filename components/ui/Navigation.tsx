@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 
 export default function Navigation() {
   const pathname = usePathname();
+  const logoPath = process.env.NODE_ENV === 'production' ? '/donation/assets/logo.jpg' : '/assets/logo.jpg';
   
   // Only show navigation on stories pages
   if (pathname.startsWith('/staff') || pathname.startsWith('/login')) {
@@ -17,7 +18,7 @@ export default function Navigation() {
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
           <Image
-            src="/assets/logo.jpg"
+            src={logoPath}
             alt="KenyanPad Logo"
             width={40}
             height={40}
