@@ -1,8 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Building, Mail, Phone, MapPin, Users, Eye, UserPlus } from 'lucide-react';
+import Cookies from 'js-cookie';
+import axios from 'axios';
 
 interface InstitutionProfile {
   code: string;
@@ -27,43 +29,68 @@ interface Donee {
 }
 
 interface InstitutionClientProps {
-  institution: Institution;
-  initialDonees: Donee[];
+  id: string;
 }
 
-export default function InstitutionClient({ 
-  institution, 
-  initialDonees 
-}: InstitutionClientProps): React.ReactElement {
+export default function InstitutionClient({ id }: InstitutionClientProps): React.ReactElement {
   const router = useRouter();
-  const [donees] = useState<Donee[]>(initialDonees);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortConfig, setSortConfig] = useState<{
-    key: keyof Donee;
-    direction: 'asc' | 'desc';
-  }>({
-    key: 'username',
-    direction: 'asc',
-  });
+  const [institution, setInstitution] = useState<Institution | null>(null);
+  const [donees, setDonees] = useState<Donee[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSort = (key: keyof Donee): void => {
-    setSortConfig({
-      key,
-      direction: sortConfig.key === key && sortConfig.direction === 'asc' ? 'desc' : 'asc',
-    });
-  };
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const accessToken = Cookies.get('access_token');
+        const jwtToken = Cookies.get('jwt_token');
 
-  const filteredAndSortedDonees = donees
-    .filter((donee) => 
-      donee.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      donee.name.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-    .sort((a, b) => {
-      if (sortConfig.direction === 'asc') {
-        return a[sortConfig.key] > b[sortConfig.key] ? 1 : -1;
+        if (!accessToken || !jwtToken) {
+          throw new Error('Authentication required');
+        }
+
+        const headers = {
+          Authorization: `Bearer ${accessToken}`,
+          JWTAUTH: `Bearer ${jwtToken}`,
+        };
+
+        const [institutionRes, doneesRes] = await Promise.all([
+          axios.get<{ details: Institution }>(
+            `${process.env.NEXT_PUBLIC_API_BASE_URL}/account/institution/${id}`,
+            { headers }
+          ),
+          axios.get<{ results: Donee[] }>(
+            `${process.env.NEXT_PUBLIC_API_BASE_URL}/account/institution/list-institution-donnees?user_id=${id}`,
+            { headers }
+          ),
+        ]);
+
+        setInstitution(institutionRes.data.details);
+        setDonees(doneesRes.data.results);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch data');
+        if (err instanceof Error && err.message === 'Authentication required') {
+          router.push('/login');
+        }
+      } finally {
+        setLoading(false);
       }
-      return a[sortConfig.key] < b[sortConfig.key] ? 1 : -1;
-    });
+    };
+
+    fetchData();
+  }, [id, router]);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+
+  if (!institution) {
+    return <div>Institution not found</div>;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-8">
@@ -111,16 +138,6 @@ export default function InstitutionClient({
                   {donees.length}
                 </span>
               </div>
-              
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Search donees..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-64 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-              </div>
             </div>
           </div>
 
@@ -128,14 +145,14 @@ export default function InstitutionClient({
             <table className="w-full">
               <thead className="bg-gray-50 dark:bg-gray-900/50">
                 <tr>
-                  <TableHeader label="Name" sortKey="name" sortConfig={sortConfig} onSort={handleSort} />
-                  <TableHeader label="Admission Number" sortKey="username" sortConfig={sortConfig} onSort={handleSort} />
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Admission Number</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                {filteredAndSortedDonees.map((donee) => (
+                {donees.map((donee) => (
                   <tr key={donee.id} className="hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -199,33 +216,5 @@ function InfoCard({ icon, label, value }: InfoCardProps): React.ReactElement {
         </div>
       </div>
     </div>
-  );
-}
-
-interface TableHeaderProps {
-  label: string;
-  sortKey: keyof Donee;
-  sortConfig: { key: keyof Donee; direction: 'asc' | 'desc' };
-  onSort: (key: keyof Donee) => void;
-}
-
-function TableHeader({ 
-  label, 
-  sortKey, 
-  sortConfig, 
-  onSort 
-}: TableHeaderProps): React.ReactElement {
-  return (
-    <th
-      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-      onClick={() => onSort(sortKey)}
-    >
-      <div className="flex items-center gap-1">
-        <span>{label}</span>
-        {sortConfig.key === sortKey && (
-          <span>{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>
-        )}
-      </div>
-    </th>
   );
 } 
