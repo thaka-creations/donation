@@ -31,6 +31,10 @@ interface PageProps {
   searchParams: { [key: string]: string | string[] | undefined };
 }
 
+export async function generateStaticParams() {
+  return []; // Return empty array since this is a dynamic route that depends on authentication
+}
+
 export default async function InstitutionDetailsPage({
   params,
 }: PageProps): Promise<React.ReactElement> {
