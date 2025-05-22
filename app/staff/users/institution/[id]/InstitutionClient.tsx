@@ -31,24 +31,30 @@ interface InstitutionClientProps {
   initialDonees: Donee[];
 }
 
-export default function InstitutionClient({ institution, initialDonees }: InstitutionClientProps) {
+export default function InstitutionClient({ 
+  institution, 
+  initialDonees 
+}: InstitutionClientProps): React.ReactElement {
   const router = useRouter();
   const [donees] = useState<Donee[]>(initialDonees);
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortConfig, setSortConfig] = useState<{key: keyof Donee; direction: 'asc' | 'desc'}>({
+  const [sortConfig, setSortConfig] = useState<{
+    key: keyof Donee;
+    direction: 'asc' | 'desc';
+  }>({
     key: 'username',
-    direction: 'asc'
+    direction: 'asc',
   });
 
-  const handleSort = (key: keyof Donee) => {
+  const handleSort = (key: keyof Donee): void => {
     setSortConfig({
       key,
-      direction: sortConfig.key === key && sortConfig.direction === 'asc' ? 'desc' : 'asc'
+      direction: sortConfig.key === key && sortConfig.direction === 'asc' ? 'desc' : 'asc',
     });
   };
 
   const filteredAndSortedDonees = donees
-    .filter(donee => 
+    .filter((donee) => 
       donee.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
       donee.name.toLowerCase().includes(searchTerm.toLowerCase())
     )
@@ -168,21 +174,20 @@ export default function InstitutionClient({ institution, initialDonees }: Instit
   );
 }
 
-// Keep the InfoCard and TableHeader components in the client file
 interface InfoCardProps {
   icon: React.ReactNode;
   label: string;
   value?: string;
 }
 
-function InfoCard({ icon, label, value }: InfoCardProps) {
+function InfoCard({ icon, label, value }: InfoCardProps): React.ReactElement {
   return (
     <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
       <div className="flex items-center gap-4">
         <div className="p-3 bg-purple-100 dark:bg-purple-900/20 rounded-xl">
           {React.isValidElement(icon) ? (
             React.cloneElement(icon as React.ReactElement<any>, {
-              className: "w-6 h-6 text-purple-600"
+              className: 'w-6 h-6 text-purple-600',
             })
           ) : (
             icon
@@ -204,7 +209,12 @@ interface TableHeaderProps {
   onSort: (key: keyof Donee) => void;
 }
 
-function TableHeader({ label, sortKey, sortConfig, onSort }: TableHeaderProps) {
+function TableHeader({ 
+  label, 
+  sortKey, 
+  sortConfig, 
+  onSort 
+}: TableHeaderProps): React.ReactElement {
   return (
     <th
       className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"

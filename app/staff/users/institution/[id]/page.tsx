@@ -26,74 +26,58 @@ interface Donee {
   name: string;
 }
 
-// Add generateStaticParams
-export async function generateStaticParams() {
-  try {
-    const cookieStore = await cookies();
-    const accessToken = cookieStore.get('access_token')?.value;
-    const jwtToken = cookieStore.get('jwt_token')?.value;
-
-    const response = await axios.get(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL}/account/institution`,
-      {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'JWTAUTH': `Bearer ${jwtToken}`
-        }
-      }
-    );
-    
-    const institutions = response.data.results;
-    return institutions.map((institution: { id: string }) => ({
-      id: institution.id,
-    }));
-  } catch (error) {
-    console.error('Error generating static params:', error);
-    return [];
-  }
-}
+// Remove generateStaticParams since we can't access cookies during build time
+// Instead, we'll make this a dynamic route
 
 // Convert to async server component
 export default async function InstitutionDetailsPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: { id: string };
 }) {
-  // Resolve the params promise
-  const resolvedParams = await params;
-  
   // Get auth tokens from cookies
   const cookieStore = await cookies();
   const accessToken = cookieStore.get('access_token')?.value;
   const jwtToken = cookieStore.get('jwt_token')?.value;
 
-  // Fetch data on the server
-  const [institutionRes, doneesRes] = await Promise.all([
-    axios.get(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL}/account/institution/${resolvedParams.id}`,
-      {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'JWTAUTH': `Bearer ${jwtToken}`
-        }
-      }
-    ),
-    axios.get(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL}/account/institution/list-institution-donnees?user_id=${resolvedParams.id}`,
-      {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'JWTAUTH': `Bearer ${jwtToken}`
-        }
-      }
-    )
-  ]);
+  if (!accessToken || !jwtToken) {
+    // Handle unauthenticated state
+    throw new Error('Authentication required');
+  }
 
-  const institution = institutionRes.data.details;
-  const donees = doneesRes.data.results;
+  try {
+    // Fetch data on the server
+    const [institutionRes, doneesRes] = await Promise.all([
+      axios.get(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/account/institution/${params.id}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'JWTAUTH': `Bearer ${jwtToken}`
+          }
+        }
+      ),
+      axios.get(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/account/institution/list-institution-donnees?user_id=${params.id}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'JWTAUTH': `Bearer ${jwtToken}`
+          }
+        }
+      )
+    ]);
 
-  // Pass data to client component
-  return <InstitutionClient institution={institution} initialDonees={donees} />;
+    const institution = institutionRes.data.details;
+    const donees = doneesRes.data.results;
+
+    // Pass data to client component
+    return <InstitutionClient institution={institution} initialDonees={donees} />;
+  } catch (error) {
+    // Handle API errors
+    console.error('Error fetching institution data:', error);
+    throw new Error('Failed to fetch institution data');
+  }
 }
 
 // Move InfoCard and TableHeader components to a separate file if needed
