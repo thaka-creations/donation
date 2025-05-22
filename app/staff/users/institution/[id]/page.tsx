@@ -5,6 +5,11 @@ interface PageProps {
   params: Promise<{ id: string }>;
   searchParams: { [key: string]: string | string[] | undefined };
 }
+export async function generateStaticParams() {
+  return [];
+}
+
+
 
 export default async function InstitutionDetailsPage({
   params,
@@ -12,5 +17,5 @@ export default async function InstitutionDetailsPage({
   // Resolve the params promise
   const resolvedParams = await params;
   
-  return <InstitutionClient institutionId={resolvedParams.id} />;
+  return <InstitutionClient id={resolvedParams.id} />;
 }
