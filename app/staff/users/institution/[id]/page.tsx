@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArrowLeft, Building, Mail, Phone, MapPin, Users, Eye, UserPlus } from 'lucide-react';
-import apiClient from '@/lib/api-client';
+import { cookies } from 'next/headers';
+import axios from 'axios';
 import InstitutionClient from './InstitutionClient';
 
 interface InstitutionProfile {
@@ -28,9 +29,21 @@ interface Donee {
 // Add generateStaticParams
 export async function generateStaticParams() {
   try {
-    const response = await apiClient.get('/account/institution/list');
-    const institutions = response.data.results;
+    const cookieStore = await cookies();
+    const accessToken = cookieStore.get('access_token')?.value;
+    const jwtToken = cookieStore.get('jwt_token')?.value;
+
+    const response = await axios.get(
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/account/institution`,
+      {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'JWTAUTH': `Bearer ${jwtToken}`
+        }
+      }
+    );
     
+    const institutions = response.data.results;
     return institutions.map((institution: { id: string }) => ({
       id: institution.id,
     }));
@@ -49,10 +62,31 @@ export default async function InstitutionDetailsPage({
   // Resolve the params promise
   const resolvedParams = await params;
   
+  // Get auth tokens from cookies
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get('access_token')?.value;
+  const jwtToken = cookieStore.get('jwt_token')?.value;
+
   // Fetch data on the server
   const [institutionRes, doneesRes] = await Promise.all([
-    apiClient.get(`/account/institution/${resolvedParams.id}`),
-    apiClient.get(`/account/institution/list-institution-donnees?user_id=${resolvedParams.id}`)
+    axios.get(
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/account/institution/${resolvedParams.id}`,
+      {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'JWTAUTH': `Bearer ${jwtToken}`
+        }
+      }
+    ),
+    axios.get(
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/account/institution/list-institution-donnees?user_id=${resolvedParams.id}`,
+      {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'JWTAUTH': `Bearer ${jwtToken}`
+        }
+      }
+    )
   ]);
 
   const institution = institutionRes.data.details;
