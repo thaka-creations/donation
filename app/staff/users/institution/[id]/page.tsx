@@ -27,6 +27,7 @@ interface Donee {
   name: string;
 }
 
+
 export default function InstitutionDetailsPage() {
   const params = useParams();
   const router = useRouter();
@@ -40,25 +41,25 @@ export default function InstitutionDetailsPage() {
     direction: 'asc'
   });
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [institutionRes, doneesRes] = await Promise.all([
-          apiClient.get(`/account/institution/${params.id}`),
-          apiClient.get(`/account/institution/list-institution-donnees?user_id=${params.id}`)
-        ]);
-        
-        setInstitution(institutionRes.data.details);
-        setDonees(doneesRes.data.results);
-      } catch (err) {
-        setError('Failed to fetch data');
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const fetchData = async () => {
+    try {
+      const [institutionRes, doneesRes] = await Promise.all([
+        apiClient.get(`/account/institution/${params.id}`),
+        apiClient.get(`/account/institution/list-institution-donnees?user_id=${params.id}`)
+      ]);
+      
+      setInstitution(institutionRes.data.details);
+      setDonees(doneesRes.data.results);
+    } catch (err) {
+      setError('Failed to fetch data');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchData();
-  }, [params.id]);
+  }, [params.id]); // fetchData is now defined outside useEffect
 
   const handleSort = (key: keyof Donee) => {
     setSortConfig({
