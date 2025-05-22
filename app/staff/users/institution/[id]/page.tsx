@@ -26,15 +26,14 @@ interface Donee {
   name: string;
 }
 
-// Remove generateStaticParams since we can't access cookies during build time
-// Instead, we'll make this a dynamic route
+interface PageProps {
+  params: { id: string };
+  searchParams: { [key: string]: string | string[] | undefined };
+}
 
-// Convert to async server component
 export default async function InstitutionDetailsPage({
   params,
-}: {
-  params: { id: string };
-}): Promise<React.ReactElement> {
+}: PageProps): Promise<React.ReactElement> {
   // Get auth tokens from cookies
   const cookieStore = await cookies();
   const accessToken = cookieStore.get('access_token')?.value;
@@ -79,5 +78,3 @@ export default async function InstitutionDetailsPage({
     throw new Error('Failed to fetch institution data');
   }
 }
-
-// Move InfoCard and TableHeader components to a separate file if needed
