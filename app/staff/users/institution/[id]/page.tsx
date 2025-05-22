@@ -34,7 +34,7 @@ export default async function InstitutionDetailsPage({
   params,
 }: {
   params: { id: string };
-}) {
+}): Promise<React.ReactElement> {
   // Get auth tokens from cookies
   const cookieStore = await cookies();
   const accessToken = cookieStore.get('access_token')?.value;
@@ -48,24 +48,24 @@ export default async function InstitutionDetailsPage({
   try {
     // Fetch data on the server
     const [institutionRes, doneesRes] = await Promise.all([
-      axios.get(
+      axios.get<{ details: Institution }>(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}/account/institution/${params.id}`,
         {
           headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'JWTAUTH': `Bearer ${jwtToken}`
-          }
+            Authorization: `Bearer ${accessToken}`,
+            JWTAUTH: `Bearer ${jwtToken}`,
+          },
         }
       ),
-      axios.get(
+      axios.get<{ results: Donee[] }>(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}/account/institution/list-institution-donnees?user_id=${params.id}`,
         {
           headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'JWTAUTH': `Bearer ${jwtToken}`
-          }
+            Authorization: `Bearer ${accessToken}`,
+            JWTAUTH: `Bearer ${jwtToken}`,
+          },
         }
-      )
+      ),
     ]);
 
     const institution = institutionRes.data.details;
