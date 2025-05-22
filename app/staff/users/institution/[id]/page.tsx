@@ -1,21 +1,25 @@
 import React from 'react';
-import InstitutionClient from './InstitutionClient';
+// import InstitutionClient from './InstitutionClient';
 
-interface PageProps {
-  params: Promise<{ id: string }>;
-  searchParams: { [key: string]: string | string[] | undefined };
-}
-export async function generateStaticParams() {
-  return [];
-}
+// interface PageProps {
+//   params: Promise<{ id: string }>;
+//   searchParams: { [key: string]: string | string[] | undefined };
+// }
+// export async function generateStaticParams() {
+//   return [];
+// }
 
 
 
-export default async function InstitutionDetailsPage({
-  params,
-}: PageProps): Promise<React.ReactElement> {
-  // Resolve the params promise
-  const resolvedParams = await params;
+// export default async function InstitutionDetailsPage({
+//   params,
+// }: PageProps): Promise<React.ReactElement> {
+//   // Resolve the params promise
+//   const resolvedParams = await params;
   
-  return <InstitutionClient id={resolvedParams.id} />;
+//   return <InstitutionClient id={resolvedParams.id} />;
+// }
+
+export default async function InstitutionDetailsPage(){
+  return <div>Under Construction</div>
 }
