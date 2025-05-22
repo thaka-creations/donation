@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, Building, Mail, Phone, MapPin, Users, Eye, UserPlus } from 'lucide-react';
 import apiClient from '@/lib/api-client';
@@ -224,8 +224,10 @@ function InfoCard({ icon, label, value }: InfoCardProps) {
     <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
       <div className="flex items-center gap-4">
         <div className="p-3 bg-purple-100 dark:bg-purple-900/20 rounded-xl">
-          {icon && 'type' in icon && typeof icon.type === 'function' ? (
-            <icon.type {...icon.props} className="w-6 h-6 text-purple-600" />
+          {React.isValidElement(icon) ? (
+            React.cloneElement(icon as React.ReactElement<any>, {
+              className: "w-6 h-6 text-purple-600"
+            })
           ) : (
             icon
           )}
