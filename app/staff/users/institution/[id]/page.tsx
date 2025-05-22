@@ -31,9 +31,13 @@ interface PageProps {
   searchParams: { [key: string]: string | string[] | undefined };
 }
 
-export async function generateStaticParams() {
-  return []; // Return empty array since this is a dynamic route that depends on authentication
-}
+// This page is dynamically rendered and cannot be exported statically
+export const dynamic = 'force-dynamic';
+export const dynamicParams = true;
+
+// Remove generateStaticParams since we're using dynamic rendering
+// The error occurs because Next.js cannot pre-render this page at build time
+// as it requires runtime data (cookies and API calls)
 
 export default async function InstitutionDetailsPage({
   params,
