@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Heart, Share2, ArrowRight } from 'lucide-react';
-import apiClient from '@/lib/api-client';
 
 interface Story {
   id: string;
@@ -28,8 +27,12 @@ export default function StoriesPage() {
   useEffect(() => {
     const fetchStories = async () => {
       try {
-        const response = await apiClient.get('/account/user/user-stories?user_type=INSTITUTION');
-        setStories(response.data.results.slice(0, 3));
+        const response = await fetch('/api/stories');
+        const data = await response.json();
+        if (data.error) {
+          throw new Error(data.error);
+        }
+        setStories(data.results.slice(0, 3));
       } catch (err) {
         setError('Failed to fetch stories');
       } finally {

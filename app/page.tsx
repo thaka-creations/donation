@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Users, ShieldCheck, Heart, TrendingUp, BookOpen, ArrowRight } from 'lucide-react';
 
 export default function HomePage() {
-  const logoPath = process.env.NODE_ENV === 'production' ? '/donation/assets/logo.jpg' : '/assets/logo.jpg';
+  const logoPath = '/assets/logo.jpg';
   return (
     <main className="min-h-screen bg-gradient-to-br from-[#f8e8e8] to-[#fff] dark:from-[#1a1a1a] dark:to-[#2d2d2d] flex flex-col">
       {/* Hero Section */}

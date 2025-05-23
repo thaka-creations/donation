@@ -8,7 +8,7 @@ import { login } from '@/lib/auth';
 
 export default function LoginPage() {
   const [form, setForm] = useState({ username: '', password: '' });
-  const logoPath = process.env.NODE_ENV === 'production' ? '/donation/assets/logo.jpg' : '/assets/logo.jpg';
+  const logoPath = '/assets/logo.jpg';
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);

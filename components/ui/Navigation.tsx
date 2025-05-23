@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 
 export default function Navigation() {
   const pathname = usePathname();
-  const logoPath = process.env.NODE_ENV === 'production' ? '/donation/assets/logo.jpg' : '/assets/logo.jpg';
+  const logoPath = '/assets/logo.jpg';
   
   // Only show navigation on stories pages
   if (pathname.startsWith('/staff') || pathname.startsWith('/login')) {

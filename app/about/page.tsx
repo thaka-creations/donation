@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { Heart } from 'lucide-react';
 
 export default function AboutPage() {
-  const logoPath = process.env.NODE_ENV === 'production' ? '/donation/assets/logo.jpg' : '/assets/logo.jpg';
+  const logoPath = '/assets/logo.jpg';
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Hero Section */}
