@@ -27,9 +27,9 @@ export const setAuthTokens = (tokens: AuthTokens) => {
     const cookieOptions = {
       expires: 1, // 1 day
       path: '/',
-      secure: process.env.NODE_ENV === 'production', // Only use secure in production
-      sameSite: 'lax' as const, // Changed from 'strict' to 'lax'
-      httpOnly: false // Changed to false to allow client-side access
+      secure: false, // ❗ Must be false since you're not using HTTPS
+      sameSite: 'lax' as const, // lax is OK for HTTP if both services are same-site
+      httpOnly: false // false so the tokens are accessible to client-side JS
     };
 
     Cookies.set('access_token', tokens.accessToken, cookieOptions);
@@ -42,6 +42,7 @@ export const setAuthTokens = (tokens: AuthTokens) => {
   }
 };
 
+
 export const getAuthTokens = (): AuthTokens | null => {
   try {
     const accessToken = Cookies.get('access_token');
@@ -51,6 +52,12 @@ export const getAuthTokens = (): AuthTokens | null => {
     if (!accessToken || !refreshToken || !jwtToken) {
       return null;
     }
+
+    console.log('Getting tokens:', {
+      accessToken: !!accessToken,
+      refreshToken: !!refreshToken,
+      jwtToken: !!jwtToken,
+    });
 
     return {
       accessToken,
