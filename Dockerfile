@@ -1,23 +1,23 @@
+# Use Node.js LTS
 FROM node:18-alpine
-
-# Install npm
-RUN apk add --no-cache npm
 
 # Set working directory
 WORKDIR /app
 
-# Install dependencies
+# Copy package files
 COPY package*.json ./
+
+# Install dependencies
 RUN npm install
 
-# Copy source code
+# Copy project files
 COPY . .
 
 # Build the application
 RUN npm run build
 
-# Expose port
+# Expose the port
 EXPOSE 3000
 
 # Start the application
-CMD ["npm", "run", "start"]
+CMD ["npm", "start"]
