@@ -27,9 +27,9 @@ export const setAuthTokens = (tokens: AuthTokens) => {
     const cookieOptions = {
       expires: 1, // 1 day
       path: '/',
-      secure: true, // Always use secure cookies in production
-      sameSite: 'strict' as const,
-      httpOnly: true // Prevent XSS attacks
+      secure: process.env.NODE_ENV === 'production', // Only use secure in production
+      sameSite: 'lax' as const, // Changed from 'strict' to 'lax'
+      httpOnly: false // Changed to false to allow client-side access
     };
 
     Cookies.set('access_token', tokens.accessToken, cookieOptions);
