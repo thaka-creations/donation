@@ -41,16 +41,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const accessToken = Cookies.get('access_token');
-      const jwtToken = Cookies.get('jwt_token');
+      try {
+        const accessToken = Cookies.get('access_token');
+        const jwtToken = Cookies.get('jwt_token');
 
-      if (!accessToken || !jwtToken) {
+        if (!accessToken || !jwtToken) {
+          router.push('/login');
+          return;
+        }
+
+        await fetchUserProfile();
+      } catch (error) {
+        console.error('Auth check failed:', error);
         router.push('/login');
-        return;
+      } finally {
+        setIsLoading(false);
       }
-
-      await fetchUserProfile();
-      setIsLoading(false);
     };
 
     checkAuth();
@@ -86,9 +92,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     try {
-      await apiClient.post('/account/logout', {
-        code: "4/0Ab_5qlmcSbFSoW4cF3-DVH0y4-LBbhd1qmT0cigTotTazUYv4K33_Ir4kDSwE-LbxvxrUA"
-      });
+      await apiClient.post('/account/logout');
     } catch (error) {
       console.error('Logout error:', error);
     } finally {

@@ -1,9 +1,15 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+if (!API_URL) {
+  throw new Error('API URL is not defined in environment variables');
+}
+
 // Create axios instance with base configuration
 const apiClient = axios.create({
-  baseURL: "http://45.79.97.25:8013/api/v1",
+  baseURL: API_URL,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json'
@@ -43,9 +49,9 @@ apiClient.interceptors.response.use(
           throw new Error('No refresh token available');
         }
 
-        // Request new tokens
+        // Request new tokens using the same base URL
         const { data: { details } } = await axios.post(
-          `http://45.79.97.25:8013/api/v1/auth/refresh`,
+          `${API_URL}/auth/refresh`,
           { refresh_token: refreshToken }
         );
 

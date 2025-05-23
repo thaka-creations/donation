@@ -4,6 +4,8 @@ import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import Sidebar from '@/components/Sidebar';
 import Topbar from '@/components/Topbar';
 import { ThemeProvider } from '@/components/ThemeProvider';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -17,6 +19,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
 function DashboardContent({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.push('/login');
+    }
+  }, [isLoading, user, router]);
 
   if (isLoading) {
     return (
@@ -27,7 +36,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   }
 
   if (!user) {
-    return null; // Will redirect to login via AuthProvider
+    return null;
   }
 
   return (
