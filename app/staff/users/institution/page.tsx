@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import DataTable from '@/components/ui/DataTable';
 import Modal from '@/components/ui/Modal';
 import { Plus, MapPin, Phone, Mail, Building, Hash, Eye, Search, Filter, Download } from 'lucide-react';
@@ -37,7 +37,7 @@ export default function InstitutionUsersPage() {
     direction: 'asc'
   });
 
-  const fetchInstitutions = async () => {
+  const fetchInstitutions = useCallback(async () => {
     try {
       const response = await apiClient.get('/account/institution');
       setInstitutions(response.data.results);
@@ -50,11 +50,11 @@ export default function InstitutionUsersPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [router]);
 
   useEffect(() => {
     fetchInstitutions();
-  }, []);
+  }, [fetchInstitutions]);
 
   const handleSort = (key: keyof Institution) => {
     setSortConfig({
